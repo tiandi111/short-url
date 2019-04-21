@@ -19,19 +19,21 @@ func main() {
 	
 	r.LoadHTMLGlob("templates/*")
 
-	// Main page
+	// Render main page
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "main.tmpl", gin.H{
 			"title": "Main Website",
 		})
 	})
 
+	// Render redirected page
 	r.GET("/:index", func(c *gin.Context) {
 		index, _:= strconv.Atoi( c.Param("index") )
 		c.Redirect(http.StatusMovedPermanently, g.pool[index])
-		fmt.Println("Redirect to: %s", g.pool[index])
+		fmt.Println("Redirect to: ", g.pool[index])
 	})
 
+	// Create new short-long url pair
 	r.POST("/:index/create", func(c *gin.Context) {
 		url := c.PostForm("url")
 		short := g.createURL(url)
