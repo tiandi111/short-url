@@ -4,20 +4,14 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
-type Generator struct {
-	index	int
-	pool 	map[int]string
-}
-
 func main() {
-	g := Generator{0, make(map[int]string, 0)}
-	
 	r := gin.Default()
 	
 	r.LoadHTMLGlob("templates/*")
+
+	db := NewDataBase()
 
 	// Render main page
 	r.GET("/", func(c *gin.Context) {
@@ -28,15 +22,15 @@ func main() {
 
 	// Render redirected page
 	r.GET("/:index", func(c *gin.Context) {
-		index, _:= strconv.Atoi( c.Param("index") )
-		c.Redirect(http.StatusMovedPermanently, g.pool[index])
-		fmt.Println("Redirect to: ", g.pool[index])
+		index := c.Param("index")
+		url := db.GetLongURL(index)
+		c.Redirect(http.StatusMovedPermanently, url)
 	})
 
 	// Create new short-long url pair
 	r.POST("/:index/create", func(c *gin.Context) {
-		url := c.PostForm("url")
-		short := g.createURL(url)
+		long := c.PostForm("url")
+		short := CreateShortURL(db, long)
 		c.String(http.StatusOK, short)
 		fmt.Println(short)
 	})
@@ -44,10 +38,4 @@ func main() {
 	r.Run(":8080")
 }
 
-func (g *Generator) createURL(url string) string{
-	i := g.index
-	g.pool[i] = url
-	postfix := strconv.Itoa(i)
-	g.index++
-	return "http://54.196.113.135:8080/"+postfix
-}
+

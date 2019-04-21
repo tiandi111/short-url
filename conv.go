@@ -15,6 +15,8 @@ func Encode(id int) string {
 	return string( arr )
 }
 
+//TODO:	Decode
+
 // Convert remainder to 64base digit in byte
 // Digit table:
 //	number	character
@@ -41,4 +43,5 @@ func to64Base(num int) byte {
 			return '*'
 	}
 }
+
 

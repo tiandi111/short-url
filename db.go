@@ -8,8 +8,9 @@ import (
 // DataBase interface encapsulate the 
 type DataBase interface {
 	IsInDb (url string) (string, bool)
+	GetLongURL (url string) string
 	GetId () int
-	Add (long string, id int) bool
+	Add (long string, id int) (string, bool)
 }
 
 // DbDriver provide an access to database
@@ -46,6 +47,14 @@ func (db *DbDriver) IsInDb(url string) (string, bool){
 	return "", false
 }
 
+// GetLongURL return the corresponding long url
+func (db *DbDriver) GetLongURL(url string) string {
+	if long, ok := db.StoL[url]; ok {
+		return long
+	}
+	return ""
+}
+
 // GetId get an ID from database
 // Then the ID is uesd to create a new long-short url pair in database
 func (db *DbDriver) GetId() int {
@@ -54,11 +63,11 @@ func (db *DbDriver) GetId() int {
 }
 
 // Add the given long url to the database
-func (db *DbDriver) Add(long string, id int) bool {
+func (db *DbDriver) Add(long string, id int) (string, bool) {
 	short := Encode(id)
 	db.StoL[short] = long
 	db.LtoS[long] = short
-	return true
+	return short, true
 }
 
 //func Encode(id int) string {
