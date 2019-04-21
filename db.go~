@@ -26,7 +26,7 @@ type DbDriver struct {
 
 // Initialize a new database
 func NewDataBase() DataBase {
-	id := 0
+	id := -1
 	stol := make(map[string]string, 1)
 	ltos := make(map[string]string, 1)
 	// Here we should return the pointer instead of struct itself

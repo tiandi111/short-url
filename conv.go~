@@ -7,7 +7,7 @@ import (
 // Encode integer id to 64base number in string
 func Encode(id int) string {
 	arr := make([]byte, 0)
-	for id > 0 {
+	for id >= 0 {
 		r := id % 64
 		arr = append([]byte{to64Base(r)}, arr...)
 		id = id >> 6
