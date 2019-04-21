@@ -14,8 +14,17 @@ type Generator struct {
 
 func main() {
 	g := Generator{0, make(map[int]string, 0)}
-	fmt.Println(g.createURL("nihao"))
+	
 	r := gin.Default()
+	
+	r.LoadHTMLGlob("templates/*")
+
+	// Main page
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "main.tmpl", gin.H{
+			"title": "Main Website",
+		})
+	})
 
 	r.GET("/:index", func(c *gin.Context) {
 		index, _:= strconv.Atoi( c.Param("index") )

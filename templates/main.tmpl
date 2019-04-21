@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $( "#button" ).click(function() {
+          var shorturl = $("#url").val();
+          //console.log(shorturl);
+          $.post("http://54.196.113.135:8080/admin/create",
+            {url: shorturl},
+            function(result, status) {
+              console.log(result)
+              $("span").html(result);
+            }
+          );
+        });
+      });
+    </script>
+  </head>
+  <body>
+
+    <form id="form" method="post" action="#">
+      长URL: <input type="text" id="url">
+      <input type="button" id="button" value="submit">
+    </form>
+    
+    <p id="shortURL">短URL: <span></span></p>
+      
+  </body>
+</html>
