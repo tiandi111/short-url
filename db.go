@@ -2,7 +2,7 @@ package main
 
 import (
 	//"fmt"
-	"strconv"
+	//"strconv"
 )
 
 // DataBase interface encapsulate the 
@@ -61,9 +61,9 @@ func (db *DbDriver) Add(long string, id int) bool {
 	return true
 }
 
-func Encode(id int) string {
-	return strconv.Itoa(id)
-}
+//func Encode(id int) string {
+//	return strconv.Itoa(id)
+//}
 
 
 
