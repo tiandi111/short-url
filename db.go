@@ -1,78 +1,79 @@
 package main
 
 import (
-	//"fmt"
-	//"strconv"
+	"context"
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"time"
 )
 
-// DataBase interface encapsulate the 
-type DataBase interface {
-	IsInDb (url string) (string, bool)
-	GetLongURL (url string) string
-	GetId () int
-	Add (long string, id int) (string, bool)
-}
-
-// DbDriver provide an access to database
-// Now, we use two maps and a integer variable ID to mock a database
-// name    key     value
-// StoL	   id	   long url
-// LtoS    longurl  id
-type DbDriver struct {
+type URL struct {
 	ID	int
-	StoL	map[string]string
-	LtoS	map[string]string
+	ID64	string
+	LongURL	string
+	CreDate	string
+	ExpDate	string
+	UserID 	int
+	TotalClicks	int
+	Location	interface{}
 }
 
-// Initialize a new database
-func NewDataBase() DataBase {
-	id := 0
-	stol := make(map[string]string, 1)
-	ltos := make(map[string]string, 1)
-	// Here we should return the pointer instead of struct itself
-	// Becasue the method required by DataBase interface is attached
-	// to the pointer of DbDrive
-	// In other words, it is the pointer of DbDriver a Database 
-	// not DbDriver itself a DataBase!
-	return &DbDriver{ id, stol, ltos}
-}
-
-// IsInDb check if the given long url is already in database
-// If so, return (shorturl, true)
-// otherwise, return ("", false)
-func (db *DbDriver) IsInDb(url string) (string, bool){
-	if short, ok := db.LtoS[url]; ok {
-		return short, true
+func NewClient() *mongo.Client {
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		log.Fatal(err)
 	}
-	return "", false
-}
-
-// GetLongURL return the corresponding long url
-func (db *DbDriver) GetLongURL(url string) string {
-	if long, ok := db.StoL[url]; ok {
-		return long
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
 	}
-	return ""
+	fmt.Println("Connected to MongoDB!")
+	return client
 }
 
-// GetId get an ID from database
-// Then the ID is uesd to create a new long-short url pair in database
-func (db *DbDriver) GetId() int {
-	db.ID++
-	return db.ID
+// 查找一个长url是否存在。若存在，返回该文件；否则返回nil
+func FindLongURL(c *mongo.Collection, ctx context.Context, id64 string) string {
+	filter := bson.M{"ID64": id64}
+	ret, ok := FindOne(c, ctx, filter)
+	if !ok {
+		return ""
+	}
+	//转化为string
+	return string(ret.Lookup("LongURL").Value[:])
 }
 
-// Add the given long url to the database
-func (db *DbDriver) Add(long string, id int) (string, bool) {
-	short := Encode(id)
-	db.StoL[short] = long
-	db.LtoS[long] = short
-	return short, true
+func FindShortURL(c *mongo.Collection, ctx context.Context, long string) string {
+	filter := bson.M{"LongURL": long}
+	ret, ok := FindOne(c, ctx, filter)
+	if !ok {
+		return ""
+	}
+	//转化为string
+	return string(ret.Lookup("ID64").Value[:])
 }
 
-//func Encode(id int) string {
-//	return strconv.Itoa(id)
-//}
+// 插入一个文件
+func InsertOne(c *mongo.Collection, ctx context.Context, document interface{}) error {
+	_, err := c.InsertOne(context.Background(), document)
+	if err != nil {
+		log.Println("Insert failed:", err)
+		return err
+	}
+	return nil
+}
 
-
+//查询一个文件
+func FindOne(c *mongo.Collection, ctx context.Context, filter interface{}) (bson.Raw, bool) {
+	ret, err := c.FindOne(ctx, filter).DecodeBytes()
+	if err != nil {
+		log.Println("Find failed:", err)
+		return nil, false
+	}
+	return ret, true
+}
 
