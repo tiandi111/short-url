@@ -36,29 +36,8 @@ func NewClient() *mongo.Client {
 	return client
 }
 
-// 查找一个长url是否存在。若存在，返回该文件；否则返回nil
-func FindLongURL(c *mongo.Collection, ctx context.Context, id64 string) string {
-	filter := bson.M{"ID64": id64}
-	ret, ok := FindOne(c, ctx, filter)
-	if !ok {
-		return ""
-	}
-	//转化为string
-	return string(ret.Lookup("LongURL").Value[:])
-}
-
-func FindShortURL(c *mongo.Collection, ctx context.Context, long string) string {
-	filter := bson.M{"LongURL": long}
-	ret, ok := FindOne(c, ctx, filter)
-	if !ok {
-		return ""
-	}
-	//转化为string
-	return string(ret.Lookup("ID64").Value[:])
-}
-
 // 插入一个文件
-func InsertOne(c *mongo.Collection, ctx context.Context, document interface{}) error {
+func InsertOne(ctx context.Context, c *mongo.Collection, document interface{}) error {
 	_, err := c.InsertOne(context.Background(), document)
 	if err != nil {
 		log.Println("Insert failed:", err)
@@ -68,7 +47,7 @@ func InsertOne(c *mongo.Collection, ctx context.Context, document interface{}) e
 }
 
 //查询一个文件
-func FindOne(c *mongo.Collection, ctx context.Context, filter interface{}) (bson.Raw, bool) {
+func FindOne(ctx context.Context, c *mongo.Collection, filter interface{}) (bson.Raw, bool) {
 	ret, err := c.FindOne(ctx, filter).DecodeBytes()
 	if err != nil {
 		log.Println("Find failed:", err)
