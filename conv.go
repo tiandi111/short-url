@@ -5,7 +5,7 @@ import (
 )
 
 // Encode integer id to 64base number in string
-func Encode(id int) string {
+func Encode(id int32) string {
 	arr := make([]byte, 0)
 	for id > 0 {
 		r := id % 64
@@ -24,7 +24,7 @@ func Encode(id int) string {
 //	10-35	   A-Z
 //	36-61	   a-z
 //	62-63	   -, .
-func to64Base(num int) byte {
+func to64Base(num int32) byte {
 	switch {
 		case num >=0 && num <= 9:
 			// '0'+num

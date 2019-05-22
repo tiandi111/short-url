@@ -1,12 +1,11 @@
 package main
 
-var curID int = 0
+import "math/rand"
 
-var idCh = make(chan int, 100)
+var idCh = make(chan int32, 100)
 
 func GenerateID() int {
 	for {
-		curID++
-		idCh <- curID
+		idCh <- rand.Int31()
 	}
 }

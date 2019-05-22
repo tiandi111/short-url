@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
 )
 
@@ -22,23 +22,23 @@ func main() {
 		})
 	})
 
+	// TODO: Intercept invalid url
 	// Render redirected page
 	r.GET("/:index", func(c *gin.Context) {
 		index := c.Param("index")
-		url := FindLongURL(cURL, context.TODO(), index)
-		c.Redirect(http.StatusMovedPermanently, url)
+		url := FindLongURL(context.TODO(), cURL, bson.D{{"id64", index}})
+		c.Redirect(http.StatusFound, url)
 	})
 
 	// Create new short-long url pair
 	r.POST("/:index/create", func(c *gin.Context) {
 		long := c.PostForm("url")
-		short, err := CreateShortURL(cURL, context.TODO(), long)
+		short, err := CreateShortURL(context.TODO(), cURL, long)
 		if err != nil {
 			c.String(http.StatusOK, "Operation failed, try again.")
 		} else {
 			c.String(http.StatusOK, short)
 		}
-		fmt.Println(short)
 	})
 
 	r.Run(":8080")
