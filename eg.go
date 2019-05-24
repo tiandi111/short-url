@@ -13,7 +13,10 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 	go GenerateID()
 
-	cURL := NewDbClient().Database("test").Collection("URL")
+	cMongo := NewDbClient().Database("test").Collection("URL")
+	cRedis := NewCacheClient()
+
+	defer CloseCilent(cRedis)
 
 	// Render main page
 	r.GET("/", func(c *gin.Context) {
@@ -26,14 +29,14 @@ func main() {
 	// Render redirected page
 	r.GET("/:index", func(c *gin.Context) {
 		index := c.Param("index")
-		url := FindLongURL(context.TODO(), cURL, bson.D{{"id64", index}})
+		url := FindLongURL(context.TODO(), cMongo, cRedis, bson.D{{"id64", index}})
 		c.Redirect(http.StatusFound, url)
 	})
 
 	// Create new short-long url pair
 	r.POST("/:index/create", func(c *gin.Context) {
 		long := c.PostForm("url")
-		short, err := CreateShortURL(context.TODO(), cURL, long)
+		short, err := CreateShortURL(context.TODO(), cMongo, cRedis, long)
 		if err != nil {
 			c.String(http.StatusOK, "Operation failed, try again.")
 		} else {

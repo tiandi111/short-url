@@ -45,11 +45,3 @@ func FindOne(ctx context.Context, c *mongo.Collection, filter interface{}) (bson
 	}
 	return ret, true
 }
-
-func FindOneInString(ctx context.Context, c *mongo.Collection, filter interface{}) (string, bool) {
-	ret, ok := FindOne(ctx, c, filter)
-	if !ok {
-		return "", false
-	}
-	return
-}

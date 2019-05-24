@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/gomodule/redigo/redis"
 	"github.com/shorturl/short-url/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,11 +10,14 @@ import (
 )
 
 // Create a short url document
-func CreateShortURL(ctx context.Context, c *mongo.Collection, long string) (string, error) {
+func CreateShortURL(ctx context.Context, c *mongo.Collection, cr redis.Conn, long string) (string, error) {
 	// if there's a short url for the given long url
-	// return it
-	if short := FindShortURL(ctx, c, bson.D{{"longurl", long}}); len(short) != 0 {
-		return "http://127.0.0.1:8080/"+short,nil
+	// return it, first check cache then database
+	if reply, _ := GetHashField(cr, long, "id64"); reply != nil {
+		return DomainName+string(reply.([]byte)), nil
+	}
+	if short := FindShortURL(ctx, c, cr, bson.D{{"longurl", long}}); len(short) != 0 {
+		return DomainName+short,nil
 	}
 	// otherwise, create a new record
 	id := <-IdCh
@@ -33,11 +37,18 @@ func CreateShortURL(ctx context.Context, c *mongo.Collection, long string) (stri
 	if err != nil {
 		return "", err
 	}
+
+	// If insert to database succeed, try insert to cache
+	err = InsertHash(cr, long, &document)
+	if err != nil {
+		return "", err
+	}
+
 	return DomainName+short, err
 }
 
 // Find long url according to given filter
-func FindLongURL(ctx context.Context, c *mongo.Collection, filter interface{}) string {
+func FindLongURL(ctx context.Context, c *mongo.Collection, cr redis.Conn, filter interface{}) string {
 	ret, ok := FindOne(ctx, c, filter)
 	if !ok {
 		return ""
@@ -46,7 +57,7 @@ func FindLongURL(ctx context.Context, c *mongo.Collection, filter interface{}) s
 }
 
 // Find short url according to given filter
-func FindShortURL(ctx context.Context, c *mongo.Collection, filter interface{}) string {
+func FindShortURL(ctx context.Context, c *mongo.Collection, cr redis.Conn, filter interface{}) string {
 	ret, ok := FindOne(ctx, c, filter)
 	if !ok {
 		return ""
