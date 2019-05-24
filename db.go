@@ -10,19 +10,8 @@ import (
 	"time"
 )
 
-type URL struct {
-	ID	int32
-	ID64	string
-	LongURL	string
-	CreDate	string
-	Duration int
-	ExpDate	string
-	UserID 	int
-	TotalClicks	int
-	Location	interface{}
-}
-
-func NewClient() *mongo.Client {
+// A client connected to mongodb server
+func NewDbClient() *mongo.Client {
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
@@ -37,7 +26,7 @@ func NewClient() *mongo.Client {
 	return client
 }
 
-// 插入一个文件
+// Insert a document
 func InsertOne(ctx context.Context, c *mongo.Collection, document interface{}) error {
 	_, err := c.InsertOne(context.Background(), document)
 	if err != nil {
@@ -47,7 +36,7 @@ func InsertOne(ctx context.Context, c *mongo.Collection, document interface{}) e
 	return nil
 }
 
-//查询一个文件
+// Find a document according to given filter
 func FindOne(ctx context.Context, c *mongo.Collection, filter interface{}) (bson.Raw, bool) {
 	ret, err := c.FindOne(ctx, filter).DecodeBytes()
 	if err != nil {
@@ -57,3 +46,10 @@ func FindOne(ctx context.Context, c *mongo.Collection, filter interface{}) (bson
 	return ret, true
 }
 
+func FindOneInString(ctx context.Context, c *mongo.Collection, filter interface{}) (string, bool) {
+	ret, ok := FindOne(ctx, c, filter)
+	if !ok {
+		return "", false
+	}
+	return
+}

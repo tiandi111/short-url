@@ -1,8 +1,4 @@
-package main
-
-import (
-	
-)
+package util
 
 // Encode integer id to 64base number in string
 func Encode(id int32) string {
@@ -43,5 +39,4 @@ func to64Base(num int32) byte {
 			return '*'
 	}
 }
-
 

@@ -13,7 +13,7 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 	go GenerateID()
 
-	cURL := NewClient().Database("test").Collection("URL")
+	cURL := NewDbClient().Database("test").Collection("URL")
 
 	// Render main page
 	r.GET("/", func(c *gin.Context) {
@@ -37,7 +37,7 @@ func main() {
 		if err != nil {
 			c.String(http.StatusOK, "Operation failed, try again.")
 		} else {
-			c.String(http.StatusOK, short)
+			c.String(http.StatusOK, "%s", short)
 		}
 	})
 
